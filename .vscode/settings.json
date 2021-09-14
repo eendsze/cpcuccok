@@ -1,5 +1,8 @@
 {
     "files.associations": {
-        "functional": "cpp"
+        "functional": "cpp",
+        "bitset": "cpp",
+        "iostream": "cpp",
+        "ostream": "cpp"
     }
 }

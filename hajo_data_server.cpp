@@ -115,7 +115,7 @@ int main(void)
 	addr.sin_port = htons(6543);
 	addr.sin_addr.s_addr = inet_addr("127.0.0.1");
 	assert(r != -1);
-	const char* proba = "proba";
+	char cbuff[1000];
 	
 
 	cout << "Creating XsControl object..." << endl;
@@ -179,11 +179,12 @@ int main(void)
 	XsOutputConfigurationArray configArray;
 	configArray.push_back(XsOutputConfiguration(XDI_PacketCounter, 0));
 	configArray.push_back(XsOutputConfiguration(XDI_SampleTimeFine, 0));
-//GNSS device, itt mondjuk meg mit kuldjon
-		configArray.push_back(XsOutputConfiguration(XDI_Quaternion, 100));
-//		configArray.push_back(XsOutputConfiguration(XDI_LatLon, 100));
-//		configArray.push_back(XsOutputConfiguration(XDI_AltitudeEllipsoid, 100));
-		configArray.push_back(XsOutputConfiguration(XDI_VelocityXYZ, 100));
+	//GNSS device, itt mondjuk meg mit kuldjon
+//		configArray.push_back(XsOutputConfiguration(XDI_Quaternion, 25));
+		configArray.push_back(XsOutputConfiguration(XDI_EulerAngles, 25));
+		configArray.push_back(XsOutputConfiguration(XDI_RateOfTurn , 25));
+		//configArray.push_back(XsOutputConfiguration(XDI_DeltaQ, 25));
+		////configArray.push_back(XsOutputConfiguration(XDI_RateOfTurnHR, 25));
 		configArray.push_back(XsOutputConfiguration(XDI_GnssPvtData, 4));
 
 	if (!device->setOutputConfiguration(configArray))
@@ -202,41 +203,45 @@ int main(void)
 		{
 			cout << setw(5) << fixed << setprecision(2);
 
-			int r = sendto(ss, proba, strlen(proba), 0, (struct sockaddr*)&addr, sizeof(addr)); 
-			cout << "r: " << r << "    ";
-
 			// Retrieve a packet
 			XsDataPacket packet = callback.getNextPacket();
 			if (packet.containsOrientation())
 			{
-				//XsQuaternion quaternion = packet.orientationQuaternion();
-				//cout << "\r"
-				//	<< "q0:" << quaternion.w()
-				//	<< ", q1:" << quaternion.x()
-				//	<< ", q2:" << quaternion.y()
-				//	<< ", q3:" << quaternion.z();
-
 				XsEuler euler = packet.orientationEuler();
 				cout << "\r |Roll:" << euler.roll()
 					<< ", Pitch:" << euler.pitch()
 					<< ", Yaw:" << euler.yaw();
+				//create json format
+				int l = sprintf(cbuff, "{\"ang\": 1, \"roll\": %f, \
+				\"pitch\": %f, \"yaw\": %f}" , euler.roll(), euler.pitch(), euler.yaw());
+				sendto(ss, cbuff, l, 0, (struct sockaddr*)&addr, sizeof(addr)); 
 			}
 
-			if (packet.containsVelocity())
+/*			if (packet.containsRateOfTurnHR())
 			{
-				XsVector vel = packet.velocity(XDI_CoordSysEnu);
-				cout << " |E:" << vel[0]
-					<< ", N:" << vel[1]
-					<< ", U:" << vel[2];
+				XsVector vec = packet.rateOfTurnHR();
+				cout << "megevan******************";
+			}*/
+			if (packet.containsCalibratedGyroscopeData())
+			{
+				XsVector vec = packet.calibratedGyroscopeData();
+				
+				cout << " Gyr:" << vec.size() << ":" << vec.data()[0];
+				cout << ":" << vec.data()[1] << ":" << vec.data()[2];
 			}
 			
 			if(packet.containsRawGnssPvtData())
 			{
 				XsRawGnssPvtData pvt = packet.rawGnssPvtData();
 				cout << " |Acc: " << pvt.m_hAcc;
-				cout << " Sat: " << (int)pvt.m_numSv;
-				cout << " Spped E: " << pvt.m_velE;
+				cout << " Sat#: " << (int)pvt.m_numSv;
+				cout << " Speed E: " << pvt.m_velE;
 				cout << " N: " << pvt.m_velN << "       ";
+				//create json format
+				int l = sprintf(cbuff, "{\"gps\": 1, \"acc\": %d, \
+					\"sat\": %d, \"spd_e\": %d, \"spd_n\": %d}",
+					pvt.m_hAcc, (int)pvt.m_numSv, pvt.m_velE, pvt.m_velN);
+				sendto(ss, cbuff, l, 0, (struct sockaddr*)&addr, sizeof(addr)); 
 			}
 
 			cout << flush;

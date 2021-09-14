@@ -1,4 +1,5 @@
 import socket
+import json
 
 add = "127.0.0.1"
 #port = socket.htons(6543)
@@ -8,8 +9,12 @@ ss.bind((add, port))
 
 while True:
 
-    #ss.sendto(b'valakkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkmi', (add, port))
-
-    data, addr = ss.recvfrom(10)
-    print(addr, data)
+    data, addr = ss.recvfrom(1000)
+    #print(addr, data)
+    jres = json.loads(data)
+    if('gps' in jres):
+        print(jres)
+    if('ang' in jres):
+        print(jres)
+        
 
