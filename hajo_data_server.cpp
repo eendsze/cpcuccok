@@ -46,6 +46,11 @@
 #include <list>
 #include <string>
 
+#include <sys/types.h> 
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
 Journaller* gJournal = 0;
 
 using namespace std;
@@ -102,6 +107,17 @@ private:
 //--------------------------------------------------------------------------------
 int main(void)
 {
+	cout << "Opening Socket" << endl;
+	int ss = socket(AF_INET, SOCK_DGRAM, 0);
+	assert(ss >= 0);
+	struct sockaddr_in addr;
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(6543);
+	addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+	assert(r != -1);
+	const char* proba = "proba";
+	
+
 	cout << "Creating XsControl object..." << endl;
 	XsControl* control = XsControl::construct();
 	assert(control != 0);
@@ -186,6 +202,9 @@ int main(void)
 		{
 			cout << setw(5) << fixed << setprecision(2);
 
+			int r = sendto(ss, proba, strlen(proba), 0, (struct sockaddr*)&addr, sizeof(addr)); 
+			cout << "r: " << r << "    ";
+
 			// Retrieve a packet
 			XsDataPacket packet = callback.getNextPacket();
 			if (packet.containsOrientation())
@@ -222,7 +241,7 @@ int main(void)
 
 			cout << flush;
 		}
-		XsTime::msleep(0);
+		XsTime::msleep(1);
 	}
 	cout << "\n" << string(79, '-') << "\n";
 	cout << endl;
