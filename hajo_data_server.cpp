@@ -51,6 +51,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+int _kbhit();
+
 Journaller* gJournal = 0;
 
 using namespace std;
@@ -180,12 +182,11 @@ int main(void)
 	configArray.push_back(XsOutputConfiguration(XDI_PacketCounter, 0));
 	configArray.push_back(XsOutputConfiguration(XDI_SampleTimeFine, 0));
 	//GNSS device, itt mondjuk meg mit kuldjon
-//		configArray.push_back(XsOutputConfiguration(XDI_Quaternion, 25));
-		configArray.push_back(XsOutputConfiguration(XDI_EulerAngles, 25));
-		configArray.push_back(XsOutputConfiguration(XDI_RateOfTurn , 25));
-		//configArray.push_back(XsOutputConfiguration(XDI_DeltaQ, 25));
-		////configArray.push_back(XsOutputConfiguration(XDI_RateOfTurnHR, 25));
-		configArray.push_back(XsOutputConfiguration(XDI_GnssPvtData, 4));
+//	configArray.push_back(XsOutputConfiguration(XDI_Quaternion, 25));
+	configArray.push_back(XsOutputConfiguration(XDI_EulerAngles, 25));
+	configArray.push_back(XsOutputConfiguration(XDI_RateOfTurn , 25));
+	//configArray.push_back(XsOutputConfiguration(XDI_DeltaQ, 25));
+	configArray.push_back(XsOutputConfiguration(XDI_GnssPvtData, 4));
 
 	if (!device->setOutputConfiguration(configArray))
 		return handleError("Could not configure MTi device. Aborting.");
@@ -217,17 +218,12 @@ int main(void)
 				sendto(ss, cbuff, l, 0, (struct sockaddr*)&addr, sizeof(addr)); 
 			}
 
-/*			if (packet.containsRateOfTurnHR())
-			{
-				XsVector vec = packet.rateOfTurnHR();
-				cout << "megevan******************";
-			}*/
 			if (packet.containsCalibratedGyroscopeData())
 			{
 				XsVector vec = packet.calibratedGyroscopeData();
 				
-				cout << " Gyr:" << vec.size() << ":" << vec.data()[0];
-				cout << ":" << vec.data()[1] << ":" << vec.data()[2];
+				cout << " Gyr:" << vec[0];
+				cout << ":" << vec[1] << ":" << vec[2] << "  ";
 			}
 			
 			if(packet.containsRawGnssPvtData())
@@ -247,6 +243,7 @@ int main(void)
 			cout << flush;
 		}
 		XsTime::msleep(1);
+		if(_kbhit()) break;
 	}
 	cout << "\n" << string(79, '-') << "\n";
 	cout << endl;

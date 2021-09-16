@@ -3,6 +3,8 @@
         "functional": "cpp",
         "bitset": "cpp",
         "iostream": "cpp",
-        "ostream": "cpp"
+        "ostream": "cpp",
+        "termios.h": "c",
+        "stropts.h": "c"
     }
 }
