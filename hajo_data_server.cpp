@@ -187,9 +187,22 @@ int main(void)
 	configArray.push_back(XsOutputConfiguration(XDI_RateOfTurn , 25));
 	//configArray.push_back(XsOutputConfiguration(XDI_DeltaQ, 25));
 	configArray.push_back(XsOutputConfiguration(XDI_GnssPvtData, 4));
+//	configArray.push_back(XsOutputConfiguration(XDI_VelocityXYZ, 25));
 
 	if (!device->setOutputConfiguration(configArray))
 		return handleError("Could not configure MTi device. Aborting.");
+
+    // 11 - general, 12 - nobaro, 13 - generalmag
+    if(!device->setOnboardFilterProfile(13)){
+		cout << "************* ez nem jott ossze ***********************";
+	}
+	// az U-blox adatalp szerint ez adja a legjobb pontossagot.
+	// az 
+	if(!device->setGnssPlatform(XGP_Pedestrian))
+		cout << "setplatform nem ok";
+	if(!device->setDeviceOptionFlags(XDOF_EnableOrientationSmoother,
+		XDOF_EnableBeidou | XDOF_DisableGps | XDOF_EnableAhs | XDOF_EnableInrunCompassCalibration))
+		cout << "setDeviceOptionFlags nem ok";
 
 	cout << "Putting device into measurement mode..." << endl;
 	if (!device->gotoMeasurement())
@@ -238,6 +251,13 @@ int main(void)
 					\"sat\": %d, \"spd_e\": %d, \"spd_n\": %d}",
 					pvt.m_hAcc, (int)pvt.m_numSv, pvt.m_velE, pvt.m_velN);
 				sendto(ss, cbuff, l, 0, (struct sockaddr*)&addr, sizeof(addr)); 
+			}
+			if (packet.containsVelocity())
+			{
+				XsVector vel = packet.velocity(XDI_CoordSysEnu);
+				cout << " |E:" << vel[0]
+					<< ", N:" << vel[1]
+					<< ", U:" << vel[2];
 			}
 
 			cout << flush;
