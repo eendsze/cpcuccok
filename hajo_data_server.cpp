@@ -245,7 +245,8 @@ int main(void)
 				cout << " |Acc: " << pvt.m_hAcc;
 				cout << " Sat#: " << (int)pvt.m_numSv;
 				cout << " Speed E: " << pvt.m_velE;
-				cout << " N: " << pvt.m_velN << "       ";
+				cout << " N: " << pvt.m_velN;
+				cout << " SpdAcc:" << pvt.m_sAcc << " fixType:" << (int)pvt.m_fixType << "  ";
 				//create json format
 				int l = sprintf(cbuff, "{\"gps\": 1, \"acc\": %d, \
 					\"sat\": %d, \"spd_e\": %d, \"spd_n\": %d}",
