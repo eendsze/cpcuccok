@@ -120,6 +120,7 @@ int main(void)
 	assert(r != -1);
 	char cbuff[1000];
 	
+    int count = 0; //csomag szamlalao, debug
 
 	cout << "Creating XsControl object..." << endl;
 	XsControl* control = XsControl::construct();
@@ -228,20 +229,21 @@ int main(void)
 			if (packet.containsOrientation())
 			{
 				XsEuler euler = packet.orientationEuler();
-				cout << "\r |Roll:" << euler.roll()
-					<< ", Pitch:" << euler.pitch()
-					<< ", Yaw:" << euler.yaw();
+				//cout << "\r |Roll:" << euler.roll()
+				//	<< ", Pitch:" << euler.pitch()
+				//	<< ", Yaw:" << euler.yaw();
 
                 roll = euler.roll(); pitch = euler.pitch(); yaw = euler.yaw();
                 sendpacket = true;
+                count++;
 			}
 
 			if (packet.containsCalibratedGyroscopeData())
 			{
 				XsVector vec = packet.calibratedGyroscopeData();
 				
-				cout << " Gyr:" << vec[0];
-				cout << ":" << vec[1] << ":" << vec[2] << "  ";
+				//cout << " Gyr:" << vec[0];
+				//cout << ":" << vec[1] << ":" << vec[2] << "  ";
 
                 spW = vec[2];
                 sendpacket = true;
@@ -250,11 +252,11 @@ int main(void)
 			if(packet.containsRawGnssPvtData())
 			{
 				XsRawGnssPvtData pvt = packet.rawGnssPvtData();
-				cout << " |Acc: " << pvt.m_hAcc;
-				cout << " Sat#: " << (int)pvt.m_numSv;
-				cout << " Speed E: " << pvt.m_velE;
-				cout << " N: " << pvt.m_velN;
-				cout << " SpdAcc:" << pvt.m_sAcc << " fixType:" << (int)pvt.m_fixType << "  ";
+				//cout << " |Acc: " << pvt.m_hAcc;
+				//cout << " Sat#: " << (int)pvt.m_numSv;
+				//cout << " Speed E: " << pvt.m_velE;
+				//cout << " N: " << pvt.m_velN;
+				//cout << " SpdAcc:" << pvt.m_sAcc << " fixType:" << (int)pvt.m_fixType << "  ";
                 //be is kell forgatni
                 float f = yaw * -M_PI/180;
                 float vx = pvt.m_velE/1000.0*cos(f) - pvt.m_velN/1000.0*sin(f);
@@ -270,9 +272,9 @@ int main(void)
 			if (packet.containsVelocity())
 			{
 				XsVector vel = packet.velocity(XDI_CoordSysEnu);
-				cout << "INS speed: |E:" << vel[0]
-					<< ", N:" << vel[1]
-					<< ", U:" << vel[2];
+				//cout << "INS speed: |E:" << vel[0]
+				//	<< ", N:" << vel[1]
+				//	<< ", U:" << vel[2];
 
                 sendpacket = true;
                 // ezt meg be is kell forgatni mert ENU rendszerben van
@@ -291,7 +293,9 @@ int main(void)
 				sendto(ss, cbuff, l, 0, (struct sockaddr*)&addr, sizeof(addr)); 
             }
 
-			cout << flush;
+            // KI KELL SZEDNI A KIIRATAST, MERT NEM BIRJA!!
+            //cout << "\r Count: " << count << "  ";
+			//cout << flush;
 		}
 		XsTime::msleep(1);
 		if(_kbhit()) break;
