@@ -255,10 +255,15 @@ int main(void)
 				cout << " Speed E: " << pvt.m_velE;
 				cout << " N: " << pvt.m_velN;
 				cout << " SpdAcc:" << pvt.m_sAcc << " fixType:" << (int)pvt.m_fixType << "  ";
+                //be is kell forgatni
+                float f = yaw * -M_PI/180;
+                float vx = pvt.m_velE/1000.0*cos(f) - pvt.m_velN/1000.0*sin(f);
+                float vy = pvt.m_velE/1000.0*sin(f) + pvt.m_velN/1000.0*cos(f);
+
 				//create json format
 				int l = sprintf(cbuff, "{\"gps\": 1, \"acc\": %d, \
-					\"sat\": %d, \"spd_e\": %d, \"spd_n\": %d}",
-					pvt.m_hAcc, (int)pvt.m_numSv, pvt.m_velE, pvt.m_velN);
+					\"sat\": %d, \"spd_e\": %d, \"spd_n\": %d, \"Vgps_vec\":[%f, %f, %f]}",
+					pvt.m_hAcc, (int)pvt.m_numSv, pvt.m_velE, pvt.m_velN, vx, vy, spW);
 				sendto(ss, cbuff, l, 0, (struct sockaddr*)&addr, sizeof(addr)); 
 			}
 
@@ -270,7 +275,7 @@ int main(void)
 					<< ", U:" << vel[2];
 
                 sendpacket = true;
-                // ezt meg be is kell forgatni
+                // ezt meg be is kell forgatni mert ENU rendszerben van
                 float f = yaw * -M_PI/180;
                 spX = vel[0]*cos(f) - vel[1]*sin(f);
                 spY = vel[0]*sin(f) + vel[1]*cos(f);
