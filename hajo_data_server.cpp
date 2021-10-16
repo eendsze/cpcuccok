@@ -45,6 +45,7 @@
 #include <iomanip>
 #include <list>
 #include <string>
+#include <cmath>
 
 #include <sys/types.h> 
 #include <sys/socket.h>
@@ -183,11 +184,11 @@ int main(void)
 	configArray.push_back(XsOutputConfiguration(XDI_SampleTimeFine, 0));
 	//GNSS device, itt mondjuk meg mit kuldjon
 //	configArray.push_back(XsOutputConfiguration(XDI_Quaternion, 25));
-	configArray.push_back(XsOutputConfiguration(XDI_EulerAngles, 25));
-	configArray.push_back(XsOutputConfiguration(XDI_RateOfTurn , 25));
+	configArray.push_back(XsOutputConfiguration(XDI_EulerAngles, 100));
+	configArray.push_back(XsOutputConfiguration(XDI_RateOfTurn , 100));
 	//configArray.push_back(XsOutputConfiguration(XDI_DeltaQ, 25));
 	configArray.push_back(XsOutputConfiguration(XDI_GnssPvtData, 4));
-//	configArray.push_back(XsOutputConfiguration(XDI_VelocityXYZ, 25));
+	configArray.push_back(XsOutputConfiguration(XDI_VelocityXYZ, 100));
 
 	if (!device->setOutputConfiguration(configArray))
 		return handleError("Could not configure MTi device. Aborting.");
@@ -217,6 +218,11 @@ int main(void)
 		{
 			cout << setw(5) << fixed << setprecision(2);
 
+            float roll, pitch, yaw;
+            float spX, spY, spW; // INS speeds X, Y es Z iranyu szogsebesseg
+            bool sendpacket = false;
+            
+
 			// Retrieve a packet
 			XsDataPacket packet = callback.getNextPacket();
 			if (packet.containsOrientation())
@@ -225,10 +231,9 @@ int main(void)
 				cout << "\r |Roll:" << euler.roll()
 					<< ", Pitch:" << euler.pitch()
 					<< ", Yaw:" << euler.yaw();
-				//create json format
-				int l = sprintf(cbuff, "{\"ang\": 1, \"roll\": %f, \
-				\"pitch\": %f, \"yaw\": %f}" , euler.roll(), euler.pitch(), euler.yaw());
-				sendto(ss, cbuff, l, 0, (struct sockaddr*)&addr, sizeof(addr)); 
+
+                roll = euler.roll(); pitch = euler.pitch(); yaw = euler.yaw();
+                sendpacket = true;
 			}
 
 			if (packet.containsCalibratedGyroscopeData())
@@ -237,6 +242,9 @@ int main(void)
 				
 				cout << " Gyr:" << vec[0];
 				cout << ":" << vec[1] << ":" << vec[2] << "  ";
+
+                spW = vec[2];
+                sendpacket = true;
 			}
 			
 			if(packet.containsRawGnssPvtData())
@@ -253,13 +261,30 @@ int main(void)
 					pvt.m_hAcc, (int)pvt.m_numSv, pvt.m_velE, pvt.m_velN);
 				sendto(ss, cbuff, l, 0, (struct sockaddr*)&addr, sizeof(addr)); 
 			}
+
 			if (packet.containsVelocity())
 			{
 				XsVector vel = packet.velocity(XDI_CoordSysEnu);
-				cout << " |E:" << vel[0]
+				cout << "INS speed: |E:" << vel[0]
 					<< ", N:" << vel[1]
 					<< ", U:" << vel[2];
+
+                sendpacket = true;
+                // ezt meg be is kell forgatni
+                float f = yaw * -M_PI/180;
+                spX = vel[0]*cos(f) - vel[1]*sin(f);
+                spY = vel[0]*sin(f) + vel[1]*cos(f);
 			}
+
+            if(sendpacket){
+				//create json format
+                // roll, pitch, yaw: szogek
+                // Vvec[] ez a szimulacioban hasznalt sebesseg vektor. a [2] tag a Z szogsebesseg
+				int l = sprintf(cbuff, "{\"ang\": 1, \"roll\": %f, \
+				\"pitch\": %f, \"yaw\": %f, \"Vvec\": [%f, %f, %f]}" ,
+                roll, pitch, yaw, spX, spY, spW);
+				sendto(ss, cbuff, l, 0, (struct sockaddr*)&addr, sizeof(addr)); 
+            }
 
 			cout << flush;
 		}
