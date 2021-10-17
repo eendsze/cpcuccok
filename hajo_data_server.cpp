@@ -178,7 +178,7 @@ int main(void)
 
 	// Important for Public XDA!
 	// Call this function if you want to record a mtb file:
-	device->readEmtsAndDeviceConfiguration();
+	//device->readEmtsAndDeviceConfiguration();
 
 	XsOutputConfigurationArray configArray;
 	configArray.push_back(XsOutputConfiguration(XDI_PacketCounter, 0));
@@ -217,7 +217,7 @@ int main(void)
 	{
 		if (callback.packetAvailable())
 		{
-			cout << setw(5) << fixed << setprecision(2);
+			//cout << setw(5) << fixed << setprecision(2);
 
             float roll, pitch, yaw;
             float spX, spY, spW; // INS speeds X, Y es Z iranyu szogsebesseg
@@ -296,8 +296,8 @@ int main(void)
             // KI KELL SZEDNI A KIIRATAST, MERT NEM BIRJA!!
             //cout << "\r Count: " << count << "  ";
 			//cout << flush;
-		}
-		XsTime::msleep(1);
+		} else XsTime::msleep(1);
+
 		if(_kbhit()) break;
 	}
 	cout << "\n" << string(79, '-') << "\n";

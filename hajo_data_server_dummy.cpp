@@ -98,7 +98,7 @@ int main(void)
 
 			cout << flush;
 		}
-		XsTime::msleep(40);
+		XsTime::msleep(10);
 		if(_kbhit()) break;
 	}
 	cout << "\n" << string(79, '-') << "\n";
