@@ -226,6 +226,7 @@ int main(void)
 
 			// Retrieve a packet
 			XsDataPacket packet = callback.getNextPacket();
+
 			if (packet.containsOrientation())
 			{
 				XsEuler euler = packet.orientationEuler();
@@ -281,7 +282,9 @@ int main(void)
                 float f = yaw * -M_PI/180;
                 spX = vel[0]*cos(f) - vel[1]*sin(f);
                 spY = vel[0]*sin(f) + vel[1]*cos(f);
-			}
+			} else {
+                spX = spY = 0.0;
+            }
 
             if(sendpacket){
 				//create json format
@@ -294,10 +297,13 @@ int main(void)
             }
 
             // KI KELL SZEDNI A KIIRATAST, MERT NEM BIRJA!!
-            //cout << "\r Count: " << count << "  ";
-			//cout << flush;
+            if(count % 100 == 0){
+                cout << "\r Count: " << count << "  ";
+			    cout << flush;
+            }
 		} else XsTime::msleep(1);
 
+        XsTime::msleep(0); //ez talan kell valami threading miatt?
 		if(_kbhit()) break;
 	}
 	cout << "\n" << string(79, '-') << "\n";
