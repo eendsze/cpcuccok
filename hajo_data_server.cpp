@@ -212,6 +212,8 @@ int main(void)
 
 	cout << "\nMegy a vonat..." << endl;
 	cout << string(79, '-') << endl;
+    float roll, pitch, yaw;
+    float spX, spY, spW; // INS speeds X, Y es Z iranyu szogsebesseg
 
 	while (1)
 	{
@@ -219,8 +221,6 @@ int main(void)
 		{
 			//cout << setw(5) << fixed << setprecision(2);
 
-            float roll, pitch, yaw;
-            float spX, spY, spW; // INS speeds X, Y es Z iranyu szogsebesseg
             bool sendpacket = false;
             
 
